@@ -1,0 +1,124 @@
+version: '3.8'
+
+services:
+  # MUSE AI Chatbot API
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: muse-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://muse:muse_password@postgres:5432/muse_db
+      - REDIS_URL=redis://redis:6379/0
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+    env_file:
+      - ../.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - muse-network
+    volumes:
+      - uploads:/tmp/muse_uploads
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: muse-postgres
+    environment:
+      - POSTGRES_USER=muse
+      - POSTGRES_PASSWORD=muse_password
+      - POSTGRES_DB=muse_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U muse -d muse_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - muse-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: muse-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - muse-network
+
+  # ChromaDB Vector Store
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: muse-chromadb
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - ANONYMIZED_TELEMETRY=False
+    restart: unless-stopped
+    networks:
+      - muse-network
+
+  # Celery Worker (Background Tasks)
+  celery-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: muse-celery-worker
+    command: celery -A app.tasks.celery_app worker --loglevel=info
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://muse:muse_password@postgres:5432/muse_db
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+    env_file:
+      - ../.env
+    depends_on:
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks:
+      - muse-network
+
+  # Flower (Celery Monitoring)
+  flower:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: muse-flower
+    command: celery -A app.tasks.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/1
+    depends_on:
+      - redis
+      - celery-worker
+    restart: unless-stopped
+    networks:
+      - muse-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  chroma_data:
+  uploads:
+
+networks:
+  muse-network:
+    driver: bridge
