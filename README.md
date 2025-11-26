@@ -4,6 +4,10 @@
   <img src="assets/muse-logo.png" alt="MUSE AI Logo" width="200"/>
 </p>
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit%20Site-10b981?style=for-the-badge)](https://yoon-k.github.io/ai-chatbot/)
+
+> **[Demo 바로가기](https://yoon-k.github.io/ai-chatbot/)** - GPT-4/Claude 채팅, RAG 문서 Q&A, 아키텍처 다이어그램 체험
+
 MUSE는 프로덕션 레디 엔터프라이즈 AI 챗봇 플랫폼입니다. 멀티 LLM 지원, RAG 파이프라인, 실시간 스트리밍, 사용자 인증, 관리자 대시보드를 포함한 완전한 솔루션입니다.
 
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)
