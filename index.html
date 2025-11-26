@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MUSE AI - Enterprise Chatbot Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #6366f1;
+            --accent: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-darker: #020617;
+            --card-bg: #1e293b;
+            --card-border: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gradient: linear-gradient(135deg, #10b981, #059669);
+            --gradient-purple: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background: var(--bg-darker);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo span {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 6rem 5%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+        }
+
+        .hero-content {
+            flex: 1;
+            z-index: 1;
+            max-width: 600px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 50px;
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero h1 span {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--card-border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Chat Demo */
+        .demo-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .chat-window {
+            width: 450px;
+            height: 600px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .chat-header {
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chat-avatar {
+            width: 45px;
+            height: 45px;
+            background: var(--gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .chat-info h3 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .chat-info p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
+        .model-selector {
+            margin-left: auto;
+            padding: 0.5rem 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 1rem 1.25rem;
+            border-radius: 16px;
+            animation: messageIn 0.3s ease;
+        }
+
+        @keyframes messageIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ai-message {
+            background: var(--bg-dark);
+            border: 1px solid var(--card-border);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .user-message {
+            background: var(--gradient);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 1rem;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: 0s; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+            30% { transform: translateY(-4px); opacity: 1; }
+        }
+
+        .chat-input-area {
+            padding: 1rem 1.5rem;
+            background: var(--bg-dark);
+            border-top: 1px solid var(--card-border);
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.875rem 1.25rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .upload-btn {
+            width: 48px;
+            height: 48px;
+            background: transparent;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 5%;
+            background: var(--bg-dark);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-header h2 span {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 2rem;
+            border-radius: 16px;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.1);
+        }
+
+        .feature-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--gradient);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .feature-card.purple .feature-icon {
+            background: var(--gradient-purple);
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* RAG Demo Section */
+        .rag-section {
+            padding: 6rem 5%;
+        }
+
+        .rag-demo {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .rag-upload {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--card-border);
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .upload-zone i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 1rem;
+        }
+
+        .upload-zone h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-zone p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .uploaded-files {
+            margin-top: 1.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-dark);
+            border-radius: 10px;
+            margin-bottom: 0.75rem;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .file-size {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .file-status {
+            color: var(--primary);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .rag-chat {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .rag-chat h4 {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .rag-messages {
+            flex: 1;
+            background: var(--bg-dark);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            min-height: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .rag-message {
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+        }
+
+        .rag-user {
+            background: var(--gradient);
+            margin-left: 20%;
+        }
+
+        .rag-ai {
+            background: var(--card-bg);
+            margin-right: 20%;
+        }
+
+        .source-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Architecture Section */
+        .architecture {
+            padding: 6rem 5%;
+            background: var(--bg-dark);
+        }
+
+        .arch-diagram {
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 3rem;
+        }
+
+        .arch-layer {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .arch-node {
+            padding: 1rem 1.5rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            text-align: center;
+            min-width: 140px;
+            transition: all 0.3s;
+        }
+
+        .arch-node:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .arch-node.primary {
+            background: var(--gradient);
+            border: none;
+        }
+
+        .arch-node i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .arch-node span {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .arch-connector {
+            display: flex;
+            justify-content: center;
+            margin: 0.5rem 0;
+        }
+
+        .arch-connector i {
+            color: var(--text-muted);
+        }
+
+        /* API Demo */
+        .api-section {
+            padding: 6rem 5%;
+        }
+
+        .api-demo {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .api-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .api-tab {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-muted);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .api-tab.active {
+            background: var(--gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .code-block {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            padding: 0.75rem 1rem;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-lang {
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: var(--bg-darker);
+            color: var(--primary);
+        }
+
+        .code-content {
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            overflow-x: auto;
+        }
+
+        .code-content .comment { color: #6b7280; }
+        .code-content .string { color: #10b981; }
+        .code-content .keyword { color: #6366f1; }
+        .code-content .property { color: #f59e0b; }
+
+        /* Footer */
+        footer {
+            padding: 3rem 5%;
+            text-align: center;
+            background: var(--bg-darker);
+            border-top: 1px solid var(--card-border);
+        }
+
+        footer p {
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .hero-content {
+                max-width: 100%;
+            }
+
+            .hero-buttons {
+                justify-content: center;
+            }
+
+            .stats {
+                justify-content: center;
+            }
+
+            .demo-container {
+                margin-top: 3rem;
+            }
+
+            .rag-demo {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .chat-window {
+                width: 100%;
+                max-width: 400px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">
+            <i class="fas fa-robot" style="color: #10b981;"></i>
+            <span>MUSE</span> AI
+        </div>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#rag">RAG</a></li>
+            <li><a href="#api">API</a></li>
+            <li><a href="https://github.com/yoon-k/ai-chatbot" target="_blank">GitHub</a></li>
+        </ul>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-content">
+            <div class="badge">
+                <i class="fas fa-sparkles"></i>
+                Enterprise Ready
+            </div>
+            <h1>프로덕션 레디<br><span>AI 챗봇 플랫폼</span></h1>
+            <p>GPT-4, Claude 멀티 LLM 지원, RAG 파이프라인, 실시간 스트리밍을 갖춘 엔터프라이즈급 AI 챗봇 솔루션</p>
+            <div class="hero-buttons">
+                <a href="https://github.com/yoon-k/ai-chatbot" target="_blank" class="btn btn-primary">
+                    <i class="fab fa-github"></i> View on GitHub
+                </a>
+                <a href="#api" class="btn btn-outline">
+                    <i class="fas fa-book"></i> API Docs
+                </a>
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-value">GPT-4</div>
+                    <div class="stat-label">+ Claude</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">RAG</div>
+                    <div class="stat-label">Pipeline</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">SSE</div>
+                    <div class="stat-label">Streaming</div>
+                </div>
+            </div>
+        </div>
+        <div class="demo-container">
+            <div class="chat-window">
+                <div class="chat-header">
+                    <div class="chat-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="chat-info">
+                        <h3>MUSE AI Assistant</h3>
+                        <p><span class="status-dot"></span> Online</p>
+                    </div>
+                    <select class="model-selector" id="modelSelector">
+                        <option value="gpt-4">GPT-4</option>
+                        <option value="claude">Claude 3</option>
+                    </select>
+                </div>
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message ai-message">
+                        안녕하세요! MUSE AI입니다. 무엇을 도와드릴까요?
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <div class="chat-input-container">
+                        <button class="upload-btn" title="문서 업로드">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <input type="text" class="chat-input" id="chatInput" placeholder="메시지를 입력하세요..." onkeypress="handleKeypress(event)">
+                        <button class="send-btn" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="section-header">
+            <h2>왜 <span>MUSE AI</span>인가요?</h2>
+            <p>엔터프라이즈 환경에 필요한 모든 기능을 갖춘 완전한 AI 챗봇 솔루션</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>Multi-LLM Support</h3>
+                <p>OpenAI GPT-4, Anthropic Claude를 동시에 지원하여 상황에 맞는 최적의 모델을 선택할 수 있습니다.</p>
+            </div>
+            <div class="feature-card purple">
+                <div class="feature-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3>RAG Pipeline</h3>
+                <p>PDF, DOCX, TXT 문서를 업로드하고 문서 기반 질의응답을 수행할 수 있습니다.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-stream"></i>
+                </div>
+                <h3>Real-time Streaming</h3>
+                <p>Server-Sent Events 기반 실시간 스트리밍으로 빠른 응답 경험을 제공합니다.</p>
+            </div>
+            <div class="feature-card purple">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Enterprise Security</h3>
+                <p>JWT 인증, API Key 관리, Rate Limiting, Audit Logging을 지원합니다.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Multi-tenancy</h3>
+                <p>조직별 독립 환경을 지원하여 SaaS 비즈니스에 적합합니다.</p>
+            </div>
+            <div class="feature-card purple">
+                <div class="feature-icon">
+                    <i class="fas fa-docker"></i>
+                </div>
+                <h3>Docker Ready</h3>
+                <p>Docker Compose로 원클릭 배포가 가능하며, Kubernetes에도 쉽게 적용할 수 있습니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="rag-section" id="rag">
+        <div class="section-header">
+            <h2>문서 기반 <span>RAG</span> 시스템</h2>
+            <p>PDF, DOCX 문서를 업로드하고 AI와 대화하며 정보를 추출하세요</p>
+        </div>
+        <div class="rag-demo">
+            <div class="rag-upload">
+                <h4><i class="fas fa-cloud-upload-alt" style="color: var(--primary);"></i> 문서 업로드</h4>
+                <div class="upload-zone" id="uploadZone" onclick="simulateUpload()">
+                    <i class="fas fa-file-pdf"></i>
+                    <h4>클릭하여 문서 업로드</h4>
+                    <p>PDF, DOCX, TXT 지원 (최대 10MB)</p>
+                </div>
+                <div class="uploaded-files" id="uploadedFiles">
+                    <div class="file-item">
+                        <div class="file-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="file-info">
+                            <div class="file-name">회사_정책_2024.pdf</div>
+                            <div class="file-size">2.4 MB</div>
+                        </div>
+                        <div class="file-status">
+                            <i class="fas fa-check-circle"></i> 인덱싱 완료
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="rag-chat">
+                <h4><i class="fas fa-comments" style="color: var(--primary);"></i> 문서 기반 Q&A</h4>
+                <div class="rag-messages" id="ragMessages">
+                    <div class="rag-message rag-user">
+                        휴가 정책에 대해 알려줘
+                    </div>
+                    <div class="rag-message rag-ai">
+                        회사 정책 문서에 따르면, 연차 휴가는 입사 1년 후 15일이 부여되며, 매년 1일씩 증가합니다. 최대 25일까지 적립 가능합니다.
+                        <div class="source-tag">
+                            <i class="fas fa-file-alt"></i> 회사_정책_2024.pdf (p.12)
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" id="ragInput" placeholder="문서에 대해 질문하세요..." onkeypress="handleRagKeypress(event)">
+                    <button class="send-btn" onclick="sendRagMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="architecture">
+        <div class="section-header">
+            <h2>시스템 <span>아키텍처</span></h2>
+            <p>확장성과 안정성을 고려한 마이크로서비스 기반 설계</p>
+        </div>
+        <div class="arch-diagram">
+            <div class="arch-layer">
+                <div class="arch-node primary">
+                    <i class="fas fa-desktop"></i>
+                    <span>Client Apps</span>
+                </div>
+            </div>
+            <div class="arch-connector"><i class="fas fa-arrow-down"></i></div>
+            <div class="arch-layer">
+                <div class="arch-node">
+                    <i class="fas fa-server"></i>
+                    <span>API Gateway</span>
+                </div>
+            </div>
+            <div class="arch-connector"><i class="fas fa-arrow-down"></i></div>
+            <div class="arch-layer">
+                <div class="arch-node">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>Chat Service</span>
+                </div>
+                <div class="arch-node">
+                    <i class="fas fa-search"></i>
+                    <span>RAG Service</span>
+                </div>
+                <div class="arch-node">
+                    <i class="fas fa-user-shield"></i>
+                    <span>Admin Service</span>
+                </div>
+            </div>
+            <div class="arch-connector"><i class="fas fa-arrow-down"></i></div>
+            <div class="arch-layer">
+                <div class="arch-node">
+                    <i class="fas fa-database"></i>
+                    <span>PostgreSQL</span>
+                </div>
+                <div class="arch-node">
+                    <i class="fas fa-bolt"></i>
+                    <span>Redis</span>
+                </div>
+                <div class="arch-node">
+                    <i class="fas fa-vector-square"></i>
+                    <span>ChromaDB</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="api-section" id="api">
+        <div class="section-header">
+            <h2>간단한 <span>API</span> 사용법</h2>
+            <p>RESTful API로 쉽게 통합하세요</p>
+        </div>
+        <div class="api-demo">
+            <div class="api-tabs">
+                <button class="api-tab active" onclick="switchApiTab('chat')">Chat</button>
+                <button class="api-tab" onclick="switchApiTab('stream')">Streaming</button>
+                <button class="api-tab" onclick="switchApiTab('rag')">RAG</button>
+            </div>
+            <div class="code-block">
+                <div class="code-header">
+                    <span class="code-lang">cURL</span>
+                    <button class="copy-btn" onclick="copyCode()">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+                <pre class="code-content" id="codeContent">
+<span class="comment"># 일반 채팅 API</span>
+curl -X POST https://api.muse.ai/v1/chat \
+  -H <span class="string">"Authorization: Bearer {token}"</span> \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -d <span class="string">'{
+    "message": "안녕하세요, MUSE!",
+    "model": "gpt-4-turbo-preview"
+  }'</span></pre>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>Made with ❤️ by <a href="https://github.com/yoon-k" target="_blank">yoon-k</a></p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">Enterprise AI Chatbot Platform</p>
+    </footer>
+
+    <script>
+        // Chat Demo
+        const responses = [
+            "물론이죠! 무엇이든 물어보세요. 코드 작성, 문서 분석, 데이터 처리 등 다양한 작업을 도와드릴 수 있습니다.",
+            "네, 말씀하신 내용을 분석해 보겠습니다. 잠시만 기다려 주세요.",
+            "좋은 질문이네요! GPT-4와 Claude 모델 중 상황에 맞는 최적의 모델을 선택해서 답변드리고 있습니다.",
+            "문서를 업로드하시면 RAG 시스템을 통해 문서 기반 질의응답이 가능합니다. 왼쪽 클립 아이콘을 클릭해보세요!",
+            "API 연동도 매우 간단합니다. 아래 API 섹션에서 사용 예시를 확인해 보세요."
+        ];
+        let responseIndex = 0;
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'message user-message';
+            userMsg.textContent = text;
+            messages.appendChild(userMsg);
+
+            input.value = '';
+            messages.scrollTop = messages.scrollHeight;
+
+            // Show typing indicator
+            const typing = document.createElement('div');
+            typing.className = 'message ai-message';
+            typing.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            messages.appendChild(typing);
+            messages.scrollTop = messages.scrollHeight;
+
+            // AI response after delay
+            setTimeout(() => {
+                typing.innerHTML = responses[responseIndex % responses.length];
+                messages.scrollTop = messages.scrollHeight;
+                responseIndex++;
+            }, 1500);
+        }
+
+        function handleKeypress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        // RAG Demo
+        const ragResponses = [
+            { text: "회사의 재택근무 정책은 주 2회까지 가능하며, 관리자 승인이 필요합니다.", source: "회사_정책_2024.pdf (p.23)" },
+            { text: "연간 교육비 지원 한도는 200만원이며, 업무 관련 교육에 한해 지원됩니다.", source: "회사_정책_2024.pdf (p.45)" },
+            { text: "육아휴직은 최대 1년까지 가능하며, 복직 후 동일 직급이 보장됩니다.", source: "회사_정책_2024.pdf (p.18)" }
+        ];
+        let ragIndex = 0;
+
+        function sendRagMessage() {
+            const input = document.getElementById('ragInput');
+            const messages = document.getElementById('ragMessages');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            const userMsg = document.createElement('div');
+            userMsg.className = 'rag-message rag-user';
+            userMsg.textContent = text;
+            messages.appendChild(userMsg);
+
+            input.value = '';
+
+            setTimeout(() => {
+                const response = ragResponses[ragIndex % ragResponses.length];
+                const aiMsg = document.createElement('div');
+                aiMsg.className = 'rag-message rag-ai';
+                aiMsg.innerHTML = `${response.text}<div class="source-tag"><i class="fas fa-file-alt"></i> ${response.source}</div>`;
+                messages.appendChild(aiMsg);
+                messages.scrollTop = messages.scrollHeight;
+                ragIndex++;
+            }, 1000);
+        }
+
+        function handleRagKeypress(e) {
+            if (e.key === 'Enter') sendRagMessage();
+        }
+
+        // Upload Simulation
+        function simulateUpload() {
+            const files = document.getElementById('uploadedFiles');
+            const newFile = document.createElement('div');
+            newFile.className = 'file-item';
+            newFile.innerHTML = `
+                <div class="file-icon">
+                    <i class="fas fa-file-word" style="color: #2563eb;"></i>
+                </div>
+                <div class="file-info">
+                    <div class="file-name">신규_프로젝트_제안서.docx</div>
+                    <div class="file-size">1.8 MB</div>
+                </div>
+                <div class="file-status" style="color: var(--accent);">
+                    <i class="fas fa-spinner fa-spin"></i> 처리 중...
+                </div>
+            `;
+            files.appendChild(newFile);
+
+            setTimeout(() => {
+                newFile.querySelector('.file-status').innerHTML = '<i class="fas fa-check-circle"></i> 인덱싱 완료';
+                newFile.querySelector('.file-status').style.color = 'var(--primary)';
+            }, 2000);
+        }
+
+        // API Tabs
+        const apiCodes = {
+            chat: `<span class="comment"># 일반 채팅 API</span>
+curl -X POST https://api.muse.ai/v1/chat \\
+  -H <span class="string">"Authorization: Bearer {token}"</span> \\
+  -H <span class="string">"Content-Type: application/json"</span> \\
+  -d <span class="string">'{
+    "message": "안녕하세요, MUSE!",
+    "model": "gpt-4-turbo-preview"
+  }'</span>`,
+            stream: `<span class="comment"># 스트리밍 채팅 API (Server-Sent Events)</span>
+curl -X POST https://api.muse.ai/v1/chat/stream \\
+  -H <span class="string">"Authorization: Bearer {token}"</span> \\
+  -H <span class="string">"Content-Type: application/json"</span> \\
+  -H <span class="string">"Accept: text/event-stream"</span> \\
+  -d <span class="string">'{
+    "message": "긴 글을 작성해줘",
+    "model": "claude-3-opus"
+  }'</span>`,
+            rag: `<span class="comment"># RAG 문서 기반 질의 API</span>
+curl -X POST https://api.muse.ai/v1/chat/rag \\
+  -H <span class="string">"Authorization: Bearer {token}"</span> \\
+  -H <span class="string">"Content-Type: application/json"</span> \\
+  -d <span class="string">'{
+    "message": "이 문서의 핵심 내용이 뭐야?",
+    "document_ids": ["doc_123", "doc_456"],
+    "top_k": 5
+  }'</span>`
+        };
+
+        function switchApiTab(tab) {
+            document.querySelectorAll('.api-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('codeContent').innerHTML = apiCodes[tab];
+        }
+
+        function copyCode() {
+            const code = document.getElementById('codeContent').innerText;
+            navigator.clipboard.writeText(code);
+            alert('코드가 클립보드에 복사되었습니다!');
+        }
+    </script>
+</body>
+</html>
