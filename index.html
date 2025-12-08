@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -80,6 +80,32 @@
 
         .nav-links a:hover {
             color: var(--primary);
+        }
+
+        .lang-selector {
+            position: relative;
+            margin-left: 1rem;
+        }
+
+        .lang-selector select {
+            padding: 0.5rem 2rem 0.5rem 1rem;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23f1f5f9' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+        }
+
+        .lang-selector select:hover {
+            border-color: var(--primary);
         }
 
         /* Hero Section */
@@ -844,10 +870,18 @@
             <span>MUSE</span> AI
         </div>
         <ul class="nav-links">
-            <li><a href="#features">Features</a></li>
-            <li><a href="#rag">RAG</a></li>
-            <li><a href="#api">API</a></li>
+            <li><a href="#features" data-i18n="nav.features">Features</a></li>
+            <li><a href="#rag" data-i18n="nav.rag">RAG</a></li>
+            <li><a href="#api" data-i18n="nav.api">API</a></li>
             <li><a href="https://github.com/yoon-k/ai-chatbot" target="_blank">GitHub</a></li>
+            <li class="lang-selector">
+                <select id="languageSelector" onchange="setLanguage(this.value)">
+                    <option value="en">English</option>
+                    <option value="ko">한국어</option>
+                    <option value="ja">日本語</option>
+                    <option value="zh">中文</option>
+                </select>
+            </li>
         </ul>
     </nav>
 
@@ -856,30 +890,30 @@
         <div class="hero-content">
             <div class="badge">
                 <i class="fas fa-sparkles"></i>
-                Enterprise Ready
+                <span data-i18n="hero.badge">Enterprise Ready</span>
             </div>
-            <h1>프로덕션 레디<br><span>AI 챗봇 플랫폼</span></h1>
-            <p>GPT-4, Claude 멀티 LLM 지원, RAG 파이프라인, 실시간 스트리밍을 갖춘 엔터프라이즈급 AI 챗봇 솔루션</p>
+            <h1><span data-i18n="hero.title1">프로덕션 레디</span><br><span data-i18n="hero.title2">AI 챗봇 플랫폼</span></h1>
+            <p data-i18n="hero.subtitle">GPT-4, Claude 멀티 LLM 지원, RAG 파이프라인, 실시간 스트리밍을 갖춘 엔터프라이즈급 AI 챗봇 솔루션</p>
             <div class="hero-buttons">
                 <a href="https://github.com/yoon-k/ai-chatbot" target="_blank" class="btn btn-primary">
-                    <i class="fab fa-github"></i> View on GitHub
+                    <i class="fab fa-github"></i> <span data-i18n="hero.githubBtn">View on GitHub</span>
                 </a>
                 <a href="#api" class="btn btn-outline">
-                    <i class="fas fa-book"></i> API Docs
+                    <i class="fas fa-book"></i> <span data-i18n="hero.apiBtn">API Docs</span>
                 </a>
             </div>
             <div class="stats">
                 <div class="stat-item">
                     <div class="stat-value">GPT-4</div>
-                    <div class="stat-label">+ Claude</div>
+                    <div class="stat-label" data-i18n="hero.stat1">+ Claude</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">RAG</div>
-                    <div class="stat-label">Pipeline</div>
+                    <div class="stat-label" data-i18n="hero.stat2">Pipeline</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-value">SSE</div>
-                    <div class="stat-label">Streaming</div>
+                    <div class="stat-label" data-i18n="hero.stat3">Streaming</div>
                 </div>
             </div>
         </div>
@@ -890,8 +924,8 @@
                         <i class="fas fa-robot"></i>
                     </div>
                     <div class="chat-info">
-                        <h3>MUSE AI Assistant</h3>
-                        <p><span class="status-dot"></span> Online</p>
+                        <h3 data-i18n="chat.title">MUSE AI Assistant</h3>
+                        <p><span class="status-dot"></span> <span data-i18n="chat.status">Online</span></p>
                     </div>
                     <select class="model-selector" id="modelSelector">
                         <option value="gpt-4">GPT-4</option>
@@ -899,16 +933,16 @@
                     </select>
                 </div>
                 <div class="chat-messages" id="chatMessages">
-                    <div class="message ai-message">
+                    <div class="message ai-message" data-i18n="chat.welcome">
                         안녕하세요! MUSE AI입니다. 무엇을 도와드릴까요?
                     </div>
                 </div>
                 <div class="chat-input-area">
                     <div class="chat-input-container">
-                        <button class="upload-btn" title="문서 업로드">
+                        <button class="upload-btn" title="문서 업로드" data-i18n-title="chat.uploadTitle">
                             <i class="fas fa-paperclip"></i>
                         </button>
-                        <input type="text" class="chat-input" id="chatInput" placeholder="메시지를 입력하세요..." onkeypress="handleKeypress(event)">
+                        <input type="text" class="chat-input" id="chatInput" placeholder="메시지를 입력하세요..." data-i18n-placeholder="chat.placeholder" onkeypress="handleKeypress(event)">
                         <button class="send-btn" onclick="sendMessage()">
                             <i class="fas fa-paper-plane"></i>
                         </button>
@@ -920,59 +954,59 @@
 
     <section class="features" id="features">
         <div class="section-header">
-            <h2>왜 <span>MUSE AI</span>인가요?</h2>
-            <p>엔터프라이즈 환경에 필요한 모든 기능을 갖춘 완전한 AI 챗봇 솔루션</p>
+            <h2><span data-i18n="features.title1">왜</span> <span>MUSE AI</span><span data-i18n="features.title2">인가요?</span></h2>
+            <p data-i18n="features.subtitle">엔터프라이즈 환경에 필요한 모든 기능을 갖춘 완전한 AI 챗봇 솔루션</p>
         </div>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-brain"></i>
                 </div>
-                <h3>Multi-LLM Support</h3>
-                <p>OpenAI GPT-4, Anthropic Claude를 동시에 지원하여 상황에 맞는 최적의 모델을 선택할 수 있습니다.</p>
+                <h3 data-i18n="features.llm.title">Multi-LLM Support</h3>
+                <p data-i18n="features.llm.desc">OpenAI GPT-4, Anthropic Claude를 동시에 지원하여 상황에 맞는 최적의 모델을 선택할 수 있습니다.</p>
             </div>
             <div class="feature-card purple">
                 <div class="feature-icon">
                     <i class="fas fa-database"></i>
                 </div>
-                <h3>RAG Pipeline</h3>
-                <p>PDF, DOCX, TXT 문서를 업로드하고 문서 기반 질의응답을 수행할 수 있습니다.</p>
+                <h3 data-i18n="features.rag.title">RAG Pipeline</h3>
+                <p data-i18n="features.rag.desc">PDF, DOCX, TXT 문서를 업로드하고 문서 기반 질의응답을 수행할 수 있습니다.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-stream"></i>
                 </div>
-                <h3>Real-time Streaming</h3>
-                <p>Server-Sent Events 기반 실시간 스트리밍으로 빠른 응답 경험을 제공합니다.</p>
+                <h3 data-i18n="features.streaming.title">Real-time Streaming</h3>
+                <p data-i18n="features.streaming.desc">Server-Sent Events 기반 실시간 스트리밍으로 빠른 응답 경험을 제공합니다.</p>
             </div>
             <div class="feature-card purple">
                 <div class="feature-icon">
                     <i class="fas fa-shield-alt"></i>
                 </div>
-                <h3>Enterprise Security</h3>
-                <p>JWT 인증, API Key 관리, Rate Limiting, Audit Logging을 지원합니다.</p>
+                <h3 data-i18n="features.security.title">Enterprise Security</h3>
+                <p data-i18n="features.security.desc">JWT 인증, API Key 관리, Rate Limiting, Audit Logging을 지원합니다.</p>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">
                     <i class="fas fa-users"></i>
                 </div>
-                <h3>Multi-tenancy</h3>
-                <p>조직별 독립 환경을 지원하여 SaaS 비즈니스에 적합합니다.</p>
+                <h3 data-i18n="features.tenancy.title">Multi-tenancy</h3>
+                <p data-i18n="features.tenancy.desc">조직별 독립 환경을 지원하여 SaaS 비즈니스에 적합합니다.</p>
             </div>
             <div class="feature-card purple">
                 <div class="feature-icon">
                     <i class="fas fa-docker"></i>
                 </div>
-                <h3>Docker Ready</h3>
-                <p>Docker Compose로 원클릭 배포가 가능하며, Kubernetes에도 쉽게 적용할 수 있습니다.</p>
+                <h3 data-i18n="features.docker.title">Docker Ready</h3>
+                <p data-i18n="features.docker.desc">Docker Compose로 원클릭 배포가 가능하며, Kubernetes에도 쉽게 적용할 수 있습니다.</p>
             </div>
         </div>
     </section>
 
     <section class="rag-section" id="rag">
         <div class="section-header">
-            <h2>문서 기반 <span>RAG</span> 시스템</h2>
-            <p>PDF, DOCX 문서를 업로드하고 AI와 대화하며 정보를 추출하세요</p>
+            <h2><span data-i18n="rag.title1">문서 기반</span> <span>RAG</span> <span data-i18n="rag.title2">시스템</span></h2>
+            <p data-i18n="rag.subtitle">PDF, DOCX 문서를 업로드하고 AI와 대화하며 정보를 추출하세요</p>
         </div>
         <div class="rag-demo">
             <div class="rag-upload">
@@ -1022,8 +1056,8 @@
 
     <section class="architecture">
         <div class="section-header">
-            <h2>시스템 <span>아키텍처</span></h2>
-            <p>확장성과 안정성을 고려한 마이크로서비스 기반 설계</p>
+            <h2><span data-i18n="arch.title1">시스템</span> <span data-i18n="arch.title2">아키텍처</span></h2>
+            <p data-i18n="arch.subtitle">확장성과 안정성을 고려한 마이크로서비스 기반 설계</p>
         </div>
         <div class="arch-diagram">
             <div class="arch-layer">
@@ -1074,8 +1108,8 @@
 
     <section class="api-section" id="api">
         <div class="section-header">
-            <h2>간단한 <span>API</span> 사용법</h2>
-            <p>RESTful API로 쉽게 통합하세요</p>
+            <h2><span data-i18n="api.title1">간단한</span> <span>API</span> <span data-i18n="api.title2">사용법</span></h2>
+            <p data-i18n="api.subtitle">RESTful API로 쉽게 통합하세요</p>
         </div>
         <div class="api-demo">
             <div class="api-tabs">
@@ -1104,8 +1138,8 @@ curl -X POST https://api.muse.ai/v1/chat \
     </section>
 
     <footer>
-        <p>Made with ❤️ by <a href="https://github.com/yoon-k" target="_blank">yoon-k</a></p>
-        <p style="margin-top: 0.5rem; font-size: 0.9rem;">Enterprise AI Chatbot Platform</p>
+        <p><span data-i18n="footer.madeby">Made with ❤️ by</span> <a href="https://github.com/yoon-k" target="_blank">yoon-k</a></p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;" data-i18n="footer.subtitle">Enterprise AI Chatbot Platform</p>
     </footer>
 
     <script>
@@ -1558,7 +1592,371 @@ curl -X POST ${window.location.origin}/api/v1/chat/rag \\
 
             // Show mode indicator
             console.log(`MUSE AI - ${CONFIG.DEMO_MODE ? 'Demo Mode' : 'API Mode'}`);
+
+            // Initialize i18n
+            initI18n();
         });
+
+        // ===== i18n System =====
+        const i18nTranslations = {
+            en: {
+                nav: {
+                    features: 'Features',
+                    rag: 'RAG',
+                    api: 'API'
+                },
+                hero: {
+                    badge: 'Enterprise Ready',
+                    title1: 'Production-Ready',
+                    title2: 'AI Chatbot Platform',
+                    subtitle: 'Enterprise-grade AI chatbot solution with GPT-4, Claude multi-LLM support, RAG pipeline, and real-time streaming',
+                    githubBtn: 'View on GitHub',
+                    apiBtn: 'API Docs',
+                    stat1: '+ Claude',
+                    stat2: 'Pipeline',
+                    stat3: 'Streaming'
+                },
+                chat: {
+                    title: 'MUSE AI Assistant',
+                    status: 'Online',
+                    welcome: 'Hello! I\'m MUSE AI. How can I help you?',
+                    uploadTitle: 'Upload document',
+                    placeholder: 'Type your message...'
+                },
+                features: {
+                    title1: 'Why',
+                    title2: 'MUSE AI?',
+                    subtitle: 'Complete AI chatbot solution with all features needed for enterprise environments',
+                    llm: {
+                        title: 'Multi-LLM Support',
+                        desc: 'Simultaneously supports OpenAI GPT-4 and Anthropic Claude, allowing you to choose the optimal model for each situation.'
+                    },
+                    rag: {
+                        title: 'RAG Pipeline',
+                        desc: 'Upload PDF, DOCX, TXT documents and perform document-based Q&A.'
+                    },
+                    streaming: {
+                        title: 'Real-time Streaming',
+                        desc: 'Provides fast response experience with Server-Sent Events based real-time streaming.'
+                    },
+                    security: {
+                        title: 'Enterprise Security',
+                        desc: 'Supports JWT authentication, API Key management, Rate Limiting, and Audit Logging.'
+                    },
+                    tenancy: {
+                        title: 'Multi-tenancy',
+                        desc: 'Supports independent environments per organization, ideal for SaaS businesses.'
+                    },
+                    docker: {
+                        title: 'Docker Ready',
+                        desc: 'One-click deployment with Docker Compose, easily applicable to Kubernetes.'
+                    }
+                },
+                rag: {
+                    title1: 'Document-based',
+                    title2: 'System',
+                    subtitle: 'Upload PDF and DOCX documents, chat with AI, and extract information'
+                },
+                arch: {
+                    title1: 'System',
+                    title2: 'Architecture',
+                    subtitle: 'Microservice-based design considering scalability and stability'
+                },
+                api: {
+                    title1: 'Simple',
+                    title2: 'API Usage',
+                    subtitle: 'Easy integration with RESTful API'
+                },
+                footer: {
+                    madeby: 'Made with ❤️ by',
+                    subtitle: 'Enterprise AI Chatbot Platform'
+                }
+            },
+            ko: {
+                nav: {
+                    features: '기능',
+                    rag: 'RAG',
+                    api: 'API'
+                },
+                hero: {
+                    badge: 'Enterprise Ready',
+                    title1: '프로덕션 레디',
+                    title2: 'AI 챗봇 플랫폼',
+                    subtitle: 'GPT-4, Claude 멀티 LLM 지원, RAG 파이프라인, 실시간 스트리밍을 갖춘 엔터프라이즈급 AI 챗봇 솔루션',
+                    githubBtn: 'GitHub에서 보기',
+                    apiBtn: 'API 문서',
+                    stat1: '+ Claude',
+                    stat2: 'Pipeline',
+                    stat3: 'Streaming'
+                },
+                chat: {
+                    title: 'MUSE AI Assistant',
+                    status: '온라인',
+                    welcome: '안녕하세요! MUSE AI입니다. 무엇을 도와드릴까요?',
+                    uploadTitle: '문서 업로드',
+                    placeholder: '메시지를 입력하세요...'
+                },
+                features: {
+                    title1: '왜',
+                    title2: 'MUSE AI인가요?',
+                    subtitle: '엔터프라이즈 환경에 필요한 모든 기능을 갖춘 완전한 AI 챗봇 솔루션',
+                    llm: {
+                        title: 'Multi-LLM Support',
+                        desc: 'OpenAI GPT-4, Anthropic Claude를 동시에 지원하여 상황에 맞는 최적의 모델을 선택할 수 있습니다.'
+                    },
+                    rag: {
+                        title: 'RAG Pipeline',
+                        desc: 'PDF, DOCX, TXT 문서를 업로드하고 문서 기반 질의응답을 수행할 수 있습니다.'
+                    },
+                    streaming: {
+                        title: 'Real-time Streaming',
+                        desc: 'Server-Sent Events 기반 실시간 스트리밍으로 빠른 응답 경험을 제공합니다.'
+                    },
+                    security: {
+                        title: 'Enterprise Security',
+                        desc: 'JWT 인증, API Key 관리, Rate Limiting, Audit Logging을 지원합니다.'
+                    },
+                    tenancy: {
+                        title: 'Multi-tenancy',
+                        desc: '조직별 독립 환경을 지원하여 SaaS 비즈니스에 적합합니다.'
+                    },
+                    docker: {
+                        title: 'Docker Ready',
+                        desc: 'Docker Compose로 원클릭 배포가 가능하며, Kubernetes에도 쉽게 적용할 수 있습니다.'
+                    }
+                },
+                rag: {
+                    title1: '문서 기반',
+                    title2: '시스템',
+                    subtitle: 'PDF, DOCX 문서를 업로드하고 AI와 대화하며 정보를 추출하세요'
+                },
+                arch: {
+                    title1: '시스템',
+                    title2: '아키텍처',
+                    subtitle: '확장성과 안정성을 고려한 마이크로서비스 기반 설계'
+                },
+                api: {
+                    title1: '간단한',
+                    title2: '사용법',
+                    subtitle: 'RESTful API로 쉽게 통합하세요'
+                },
+                footer: {
+                    madeby: '제작:',
+                    subtitle: '엔터프라이즈 AI 챗봇 플랫폼'
+                }
+            },
+            ja: {
+                nav: {
+                    features: '機能',
+                    rag: 'RAG',
+                    api: 'API'
+                },
+                hero: {
+                    badge: 'エンタープライズ対応',
+                    title1: 'プロダクションレディ',
+                    title2: 'AIチャットボットプラットフォーム',
+                    subtitle: 'GPT-4、Claude マルチLLMサポート、RAGパイプライン、リアルタイムストリーミングを備えたエンタープライズグレードのAIチャットボットソリューション',
+                    githubBtn: 'GitHubで見る',
+                    apiBtn: 'APIドキュメント',
+                    stat1: '+ Claude',
+                    stat2: 'Pipeline',
+                    stat3: 'Streaming'
+                },
+                chat: {
+                    title: 'MUSE AI アシスタント',
+                    status: 'オンライン',
+                    welcome: 'こんにちは！MUSE AIです。どのようにお手伝いできますか？',
+                    uploadTitle: 'ドキュメントをアップロード',
+                    placeholder: 'メッセージを入力してください...'
+                },
+                features: {
+                    title1: 'なぜ',
+                    title2: 'MUSE AIなのか？',
+                    subtitle: 'エンタープライズ環境に必要なすべての機能を備えた完全なAIチャットボットソリューション',
+                    llm: {
+                        title: 'マルチLLMサポート',
+                        desc: 'OpenAI GPT-4とAnthropic Claudeを同時サポート、状況に応じて最適なモデルを選択できます。'
+                    },
+                    rag: {
+                        title: 'RAGパイプライン',
+                        desc: 'PDF、DOCX、TXTドキュメントをアップロードして、ドキュメントベースのQ&Aを実行できます。'
+                    },
+                    streaming: {
+                        title: 'リアルタイムストリーミング',
+                        desc: 'Server-Sent Eventsベースのリアルタイムストリーミングで高速レスポンスを提供します。'
+                    },
+                    security: {
+                        title: 'エンタープライズセキュリティ',
+                        desc: 'JWT認証、APIキー管理、レート制限、監査ログをサポートします。'
+                    },
+                    tenancy: {
+                        title: 'マルチテナンシー',
+                        desc: '組織ごとの独立環境をサポートし、SaaSビジネスに最適です。'
+                    },
+                    docker: {
+                        title: 'Docker対応',
+                        desc: 'Docker Composeでワンクリックデプロイ可能、Kubernetesにも簡単に適用できます。'
+                    }
+                },
+                rag: {
+                    title1: 'ドキュメントベース',
+                    title2: 'システム',
+                    subtitle: 'PDFとDOCXドキュメントをアップロードし、AIと会話して情報を抽出'
+                },
+                arch: {
+                    title1: 'システム',
+                    title2: 'アーキテクチャ',
+                    subtitle: 'スケーラビリティと安定性を考慮したマイクロサービスベースの設計'
+                },
+                api: {
+                    title1: 'シンプルな',
+                    title2: 'API使用法',
+                    subtitle: 'RESTful APIで簡単に統合'
+                },
+                footer: {
+                    madeby: '制作:',
+                    subtitle: 'エンタープライズAIチャットボットプラットフォーム'
+                }
+            },
+            zh: {
+                nav: {
+                    features: '功能',
+                    rag: 'RAG',
+                    api: 'API'
+                },
+                hero: {
+                    badge: '企业级就绪',
+                    title1: '生产就绪',
+                    title2: 'AI聊天机器人平台',
+                    subtitle: '具有GPT-4、Claude多LLM支持、RAG管道和实时流的企业级AI聊天机器人解决方案',
+                    githubBtn: '在GitHub上查看',
+                    apiBtn: 'API文档',
+                    stat1: '+ Claude',
+                    stat2: 'Pipeline',
+                    stat3: 'Streaming'
+                },
+                chat: {
+                    title: 'MUSE AI 助手',
+                    status: '在线',
+                    welcome: '您好！我是MUSE AI。有什么可以帮您的吗？',
+                    uploadTitle: '上传文档',
+                    placeholder: '输入您的消息...'
+                },
+                features: {
+                    title1: '为什么选择',
+                    title2: 'MUSE AI？',
+                    subtitle: '具备企业环境所需所有功能的完整AI聊天机器人解决方案',
+                    llm: {
+                        title: '多LLM支持',
+                        desc: '同时支持OpenAI GPT-4和Anthropic Claude，可根据情况选择最佳模型。'
+                    },
+                    rag: {
+                        title: 'RAG管道',
+                        desc: '上传PDF、DOCX、TXT文档，执行基于文档的问答。'
+                    },
+                    streaming: {
+                        title: '实时流媒体',
+                        desc: '基于Server-Sent Events的实时流，提供快速响应体验。'
+                    },
+                    security: {
+                        title: '企业安全',
+                        desc: '支持JWT认证、API密钥管理、速率限制和审计日志。'
+                    },
+                    tenancy: {
+                        title: '多租户',
+                        desc: '支持按组织独立环境，适合SaaS业务。'
+                    },
+                    docker: {
+                        title: 'Docker就绪',
+                        desc: '使用Docker Compose一键部署，也可轻松应用于Kubernetes。'
+                    }
+                },
+                rag: {
+                    title1: '基于文档的',
+                    title2: '系统',
+                    subtitle: '上传PDF和DOCX文档，与AI对话并提取信息'
+                },
+                arch: {
+                    title1: '系统',
+                    title2: '架构',
+                    subtitle: '考虑可扩展性和稳定性的微服务架构设计'
+                },
+                api: {
+                    title1: '简单的',
+                    title2: 'API使用',
+                    subtitle: '使用RESTful API轻松集成'
+                },
+                footer: {
+                    madeby: '制作：',
+                    subtitle: '企业AI聊天机器人平台'
+                }
+            }
+        };
+
+        let currentLanguage = 'ko';
+
+        function initI18n() {
+            // Get saved language or detect browser language
+            const saved = localStorage.getItem('muse_ai_lang');
+            const browserLang = navigator.language.split('-')[0];
+            currentLanguage = saved || (['en', 'ko', 'ja', 'zh'].includes(browserLang) ? browserLang : 'ko');
+
+            // Set language selector
+            document.getElementById('languageSelector').value = currentLanguage;
+
+            // Apply translations
+            applyTranslations();
+        }
+
+        function setLanguage(lang) {
+            if (!i18nTranslations[lang]) return;
+
+            currentLanguage = lang;
+            localStorage.setItem('muse_ai_lang', lang);
+            document.documentElement.lang = lang;
+
+            applyTranslations();
+        }
+
+        function getTranslation(key) {
+            const keys = key.split('.');
+            let value = i18nTranslations[currentLanguage];
+
+            for (const k of keys) {
+                value = value?.[k];
+            }
+
+            return value || key;
+        }
+
+        function applyTranslations() {
+            // Translate elements with data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                const translation = getTranslation(key);
+                if (translation) {
+                    el.textContent = translation;
+                }
+            });
+
+            // Translate placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                const translation = getTranslation(key);
+                if (translation) {
+                    el.placeholder = translation;
+                }
+            });
+
+            // Translate titles
+            document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                const translation = getTranslation(key);
+                if (translation) {
+                    el.title = translation;
+                }
+            });
+        }
     </script>
 </body>
 </html>
