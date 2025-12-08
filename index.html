@@ -1109,22 +1109,228 @@ curl -X POST https://api.muse.ai/v1/chat \
     </footer>
 
     <script>
-        // Chat Demo
-        const responses = [
-            "물론이죠! 무엇이든 물어보세요. 코드 작성, 문서 분석, 데이터 처리 등 다양한 작업을 도와드릴 수 있습니다.",
-            "네, 말씀하신 내용을 분석해 보겠습니다. 잠시만 기다려 주세요.",
-            "좋은 질문이네요! GPT-4와 Claude 모델 중 상황에 맞는 최적의 모델을 선택해서 답변드리고 있습니다.",
-            "문서를 업로드하시면 RAG 시스템을 통해 문서 기반 질의응답이 가능합니다. 왼쪽 클립 아이콘을 클릭해보세요!",
-            "API 연동도 매우 간단합니다. 아래 API 섹션에서 사용 예시를 확인해 보세요."
-        ];
-        let responseIndex = 0;
+        // ===== Configuration =====
+        const CONFIG = {
+            // API 설정 - 실제 백엔드 서버 URL로 변경하세요
+            API_BASE_URL: window.location.origin + '/api/v1',
+            // 데모 모드: true면 하드코딩 응답, false면 실제 API 호출
+            DEMO_MODE: !localStorage.getItem('muse_api_token'),
+            // 저장된 토큰
+            get token() {
+                return localStorage.getItem('muse_api_token');
+            },
+            set token(value) {
+                if (value) {
+                    localStorage.setItem('muse_api_token', value);
+                    this.DEMO_MODE = false;
+                } else {
+                    localStorage.removeItem('muse_api_token');
+                    this.DEMO_MODE = true;
+                }
+            }
+        };
 
-        function sendMessage() {
+        // ===== API Service =====
+        const APIService = {
+            async request(endpoint, options = {}) {
+                const url = CONFIG.API_BASE_URL + endpoint;
+                const headers = {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                };
+
+                if (CONFIG.token) {
+                    headers['Authorization'] = `Bearer ${CONFIG.token}`;
+                }
+
+                try {
+                    const response = await fetch(url, {
+                        ...options,
+                        headers
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+
+                    return await response.json();
+                } catch (error) {
+                    console.error('API Error:', error);
+                    throw error;
+                }
+            },
+
+            async chat(message, model = 'gpt-4') {
+                return this.request('/chat', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        message,
+                        model,
+                        stream: false
+                    })
+                });
+            },
+
+            async chatStream(message, model = 'gpt-4', onChunk) {
+                const url = CONFIG.API_BASE_URL + '/chat/stream';
+                const headers = {
+                    'Content-Type': 'application/json',
+                    'Accept': 'text/event-stream'
+                };
+
+                if (CONFIG.token) {
+                    headers['Authorization'] = `Bearer ${CONFIG.token}`;
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ message, model, stream: true })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = line.slice(6);
+                            if (data === '[DONE]') return;
+                            try {
+                                const chunk = JSON.parse(data);
+                                onChunk(chunk);
+                            } catch (e) {}
+                        }
+                    }
+                }
+            },
+
+            async chatRAG(message, documentIds = [], topK = 5) {
+                return this.request('/chat/rag', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        message,
+                        document_ids: documentIds,
+                        top_k: topK
+                    })
+                });
+            },
+
+            async uploadDocument(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const url = CONFIG.API_BASE_URL + '/documents/upload';
+                const headers = {};
+                if (CONFIG.token) {
+                    headers['Authorization'] = `Bearer ${CONFIG.token}`;
+                }
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers,
+                    body: formData
+                });
+
+                return await response.json();
+            }
+        };
+
+        // ===== AI Response Generator (Demo Mode) =====
+        const DemoAI = {
+            context: [],
+
+            async generateResponse(message) {
+                // 간단한 컨텍스트 기반 응답 생성
+                this.context.push({ role: 'user', content: message });
+
+                const lowerMsg = message.toLowerCase();
+                let response = '';
+
+                // 의도 파악 및 응답 생성
+                if (lowerMsg.includes('안녕') || lowerMsg.includes('hello') || lowerMsg.includes('hi')) {
+                    response = '안녕하세요! 👋 MUSE AI입니다. 무엇을 도와드릴까요? 코드 작성, 문서 분석, 질문 답변 등 다양한 작업을 도와드릴 수 있어요.';
+                } else if (lowerMsg.includes('코드') || lowerMsg.includes('프로그래밍') || lowerMsg.includes('개발')) {
+                    response = '코드 관련 질문이시군요! 👨‍💻 어떤 프로그래밍 언어나 기술에 대해 도움이 필요하신가요? Python, JavaScript, Java 등 다양한 언어를 지원합니다.';
+                } else if (lowerMsg.includes('문서') || lowerMsg.includes('pdf') || lowerMsg.includes('분석')) {
+                    response = '문서 분석 기능을 원하시는군요! 📄 RAG 섹션에서 PDF, DOCX 등의 문서를 업로드하시면 AI가 문서 내용을 분석하고 질문에 답변해 드립니다.';
+                } else if (lowerMsg.includes('api') || lowerMsg.includes('연동')) {
+                    response = 'API 연동은 매우 간단합니다! 🔌\n\n1. 먼저 회원가입 후 API 토큰을 발급받으세요\n2. 아래 API 섹션의 예시 코드를 참고하세요\n3. REST API 또는 스트리밍 API를 선택할 수 있습니다';
+                } else if (lowerMsg.includes('gpt') || lowerMsg.includes('claude') || lowerMsg.includes('모델')) {
+                    const model = document.getElementById('modelSelector').value;
+                    response = `현재 선택된 모델은 ${model === 'gpt-4' ? 'GPT-4' : 'Claude 3'}입니다. 🤖\n\n• GPT-4: 복잡한 추론과 창의적 작업에 강함\n• Claude 3: 긴 문맥 이해와 분석에 탁월\n\n드롭다운에서 모델을 변경할 수 있어요!`;
+                } else if (lowerMsg.includes('가격') || lowerMsg.includes('비용') || lowerMsg.includes('요금')) {
+                    response = '가격 정책에 대해 알려드릴게요! 💰\n\n• Free: 월 100회 요청 무료\n• Pro: 월 $29 - 무제한 요청\n• Enterprise: 맞춤 견적\n\n자세한 내용은 GitHub 페이지를 참조해주세요!';
+                } else if (lowerMsg.includes('도움') || lowerMsg.includes('help') || lowerMsg.includes('기능')) {
+                    response = 'MUSE AI가 도와드릴 수 있는 것들:\n\n🗣️ 자연어 대화 및 질의응답\n💻 코드 작성 및 리뷰\n📊 데이터 분석 및 시각화\n📄 문서 분석 (RAG)\n🌐 다국어 번역\n✍️ 콘텐츠 작성\n\n무엇이든 물어보세요!';
+                } else {
+                    // 기본 응답
+                    const defaultResponses = [
+                        `"${message}"에 대해 생각해 보았어요. 더 자세한 정보가 필요하시면 구체적으로 질문해 주세요!`,
+                        '좋은 질문이네요! 🤔 조금 더 구체적으로 알려주시면 더 정확한 답변을 드릴 수 있어요.',
+                        '말씀하신 내용을 이해했습니다. 추가로 궁금한 점이 있으시면 편하게 질문해 주세요!',
+                        '네, 도움이 필요하시군요! 어떤 부분을 더 설명해 드릴까요?'
+                    ];
+                    response = defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+                }
+
+                this.context.push({ role: 'assistant', content: response });
+
+                // 시뮬레이션된 지연
+                await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 700));
+
+                return response;
+            },
+
+            async generateRAGResponse(message, documents) {
+                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 500));
+
+                // 문서 기반 시뮬레이션 응답
+                const ragResponses = {
+                    '휴가': { text: '회사 정책 문서에 따르면, 연차 휴가는 입사 1년 후 15일이 부여되며, 매년 1일씩 증가합니다. 최대 25일까지 적립 가능합니다.', source: '회사_정책_2024.pdf (p.12)' },
+                    '재택': { text: '회사의 재택근무 정책은 주 2회까지 가능하며, 관리자 승인이 필요합니다. 긴급 상황 시 추가 재택근무가 가능합니다.', source: '회사_정책_2024.pdf (p.23)' },
+                    '교육': { text: '연간 교육비 지원 한도는 200만원이며, 업무 관련 교육에 한해 지원됩니다. 온라인 교육도 포함됩니다.', source: '회사_정책_2024.pdf (p.45)' },
+                    '육아': { text: '육아휴직은 최대 1년까지 가능하며, 복직 후 동일 직급이 보장됩니다. 남녀 모두 신청 가능합니다.', source: '회사_정책_2024.pdf (p.18)' },
+                    '급여': { text: '급여는 매월 25일에 지급되며, 주말/공휴일인 경우 직전 영업일에 지급됩니다.', source: '회사_정책_2024.pdf (p.8)' }
+                };
+
+                const lowerMsg = message.toLowerCase();
+                for (const [keyword, resp] of Object.entries(ragResponses)) {
+                    if (lowerMsg.includes(keyword)) {
+                        return resp;
+                    }
+                }
+
+                return {
+                    text: `"${message}"에 대해 업로드된 문서를 검색했습니다. 관련 내용을 찾았으며, 자세한 내용은 문서를 직접 확인해 주세요.`,
+                    source: documents[0]?.name || '업로드된 문서'
+                };
+            }
+        };
+
+        // ===== Chat Functions =====
+        let uploadedDocs = [{ id: 'doc_1', name: '회사_정책_2024.pdf' }];
+        let isProcessing = false;
+
+        async function sendMessage() {
+            if (isProcessing) return;
+
             const input = document.getElementById('chatInput');
             const messages = document.getElementById('chatMessages');
             const text = input.value.trim();
+            const model = document.getElementById('modelSelector').value;
 
             if (!text) return;
+
+            isProcessing = true;
 
             // Add user message
             const userMsg = document.createElement('div');
@@ -1138,36 +1344,65 @@ curl -X POST https://api.muse.ai/v1/chat \
             // Show typing indicator
             const typing = document.createElement('div');
             typing.className = 'message ai-message';
+            typing.id = 'typing-indicator';
             typing.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
             messages.appendChild(typing);
             messages.scrollTop = messages.scrollHeight;
 
-            // AI response after delay
-            setTimeout(() => {
-                typing.innerHTML = responses[responseIndex % responses.length];
-                messages.scrollTop = messages.scrollHeight;
-                responseIndex++;
-            }, 1500);
+            try {
+                let response;
+
+                if (CONFIG.DEMO_MODE) {
+                    // Demo mode: use simulated AI
+                    response = await DemoAI.generateResponse(text);
+                } else {
+                    // Production mode: use real API with streaming
+                    let fullResponse = '';
+                    typing.innerHTML = '';
+
+                    await APIService.chatStream(text, model, (chunk) => {
+                        if (chunk.content) {
+                            fullResponse += chunk.content;
+                            typing.innerHTML = fullResponse;
+                            messages.scrollTop = messages.scrollHeight;
+                        }
+                    });
+
+                    response = fullResponse || 'API 연결 중 오류가 발생했습니다.';
+                }
+
+                typing.innerHTML = response;
+                typing.id = '';
+            } catch (error) {
+                console.error('Chat error:', error);
+                typing.innerHTML = CONFIG.DEMO_MODE
+                    ? await DemoAI.generateResponse(text)
+                    : '죄송합니다, 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+                typing.id = '';
+            }
+
+            messages.scrollTop = messages.scrollHeight;
+            isProcessing = false;
         }
 
         function handleKeypress(e) {
-            if (e.key === 'Enter') sendMessage();
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
         }
 
-        // RAG Demo
-        const ragResponses = [
-            { text: "회사의 재택근무 정책은 주 2회까지 가능하며, 관리자 승인이 필요합니다.", source: "회사_정책_2024.pdf (p.23)" },
-            { text: "연간 교육비 지원 한도는 200만원이며, 업무 관련 교육에 한해 지원됩니다.", source: "회사_정책_2024.pdf (p.45)" },
-            { text: "육아휴직은 최대 1년까지 가능하며, 복직 후 동일 직급이 보장됩니다.", source: "회사_정책_2024.pdf (p.18)" }
-        ];
-        let ragIndex = 0;
+        // ===== RAG Functions =====
+        async function sendRagMessage() {
+            if (isProcessing) return;
 
-        function sendRagMessage() {
             const input = document.getElementById('ragInput');
             const messages = document.getElementById('ragMessages');
             const text = input.value.trim();
 
             if (!text) return;
+
+            isProcessing = true;
 
             const userMsg = document.createElement('div');
             userMsg.className = 'rag-message rag-user';
@@ -1176,33 +1411,73 @@ curl -X POST https://api.muse.ai/v1/chat \
 
             input.value = '';
 
-            setTimeout(() => {
-                const response = ragResponses[ragIndex % ragResponses.length];
-                const aiMsg = document.createElement('div');
-                aiMsg.className = 'rag-message rag-ai';
-                aiMsg.innerHTML = `${response.text}<div class="source-tag"><i class="fas fa-file-alt"></i> ${response.source}</div>`;
-                messages.appendChild(aiMsg);
-                messages.scrollTop = messages.scrollHeight;
-                ragIndex++;
-            }, 1000);
+            // Show loading
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'rag-message rag-ai';
+            loadingMsg.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 문서를 검색하고 있습니다...';
+            messages.appendChild(loadingMsg);
+            messages.scrollTop = messages.scrollHeight;
+
+            try {
+                let response;
+
+                if (CONFIG.DEMO_MODE) {
+                    response = await DemoAI.generateRAGResponse(text, uploadedDocs);
+                } else {
+                    const docIds = uploadedDocs.map(d => d.id);
+                    const result = await APIService.chatRAG(text, docIds);
+                    response = {
+                        text: result.response || result.message,
+                        source: result.sources?.[0]?.document_name || uploadedDocs[0]?.name
+                    };
+                }
+
+                loadingMsg.innerHTML = `${response.text}<div class="source-tag"><i class="fas fa-file-alt"></i> ${response.source}</div>`;
+            } catch (error) {
+                console.error('RAG error:', error);
+                const fallback = await DemoAI.generateRAGResponse(text, uploadedDocs);
+                loadingMsg.innerHTML = `${fallback.text}<div class="source-tag"><i class="fas fa-file-alt"></i> ${fallback.source}</div>`;
+            }
+
+            messages.scrollTop = messages.scrollHeight;
+            isProcessing = false;
         }
 
         function handleRagKeypress(e) {
             if (e.key === 'Enter') sendRagMessage();
         }
 
-        // Upload Simulation
+        // ===== File Upload =====
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.pdf,.docx,.txt,.doc';
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
+
         function simulateUpload() {
+            fileInput.click();
+        }
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
             const files = document.getElementById('uploadedFiles');
             const newFile = document.createElement('div');
             newFile.className = 'file-item';
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            const iconColor = ext === 'pdf' ? '#ef4444' : ext === 'docx' || ext === 'doc' ? '#2563eb' : '#10b981';
+            const icon = ext === 'pdf' ? 'fa-file-pdf' : ext === 'docx' || ext === 'doc' ? 'fa-file-word' : 'fa-file-alt';
+
             newFile.innerHTML = `
-                <div class="file-icon">
-                    <i class="fas fa-file-word" style="color: #2563eb;"></i>
+                <div class="file-icon" style="color: ${iconColor};">
+                    <i class="fas ${icon}"></i>
                 </div>
                 <div class="file-info">
-                    <div class="file-name">신규_프로젝트_제안서.docx</div>
-                    <div class="file-size">1.8 MB</div>
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-size">${(file.size / 1024 / 1024).toFixed(2)} MB</div>
                 </div>
                 <div class="file-status" style="color: var(--accent);">
                     <i class="fas fa-spinner fa-spin"></i> 처리 중...
@@ -1210,16 +1485,30 @@ curl -X POST https://api.muse.ai/v1/chat \
             `;
             files.appendChild(newFile);
 
-            setTimeout(() => {
+            try {
+                if (!CONFIG.DEMO_MODE) {
+                    const result = await APIService.uploadDocument(file);
+                    uploadedDocs.push({ id: result.document_id, name: file.name });
+                } else {
+                    // Demo mode: simulate upload
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    uploadedDocs.push({ id: 'doc_' + Date.now(), name: file.name });
+                }
+
                 newFile.querySelector('.file-status').innerHTML = '<i class="fas fa-check-circle"></i> 인덱싱 완료';
                 newFile.querySelector('.file-status').style.color = 'var(--primary)';
-            }, 2000);
-        }
+            } catch (error) {
+                newFile.querySelector('.file-status').innerHTML = '<i class="fas fa-exclamation-circle"></i> 업로드 실패';
+                newFile.querySelector('.file-status').style.color = '#ef4444';
+            }
 
-        // API Tabs
+            fileInput.value = '';
+        });
+
+        // ===== API Tabs =====
         const apiCodes = {
             chat: `<span class="comment"># 일반 채팅 API</span>
-curl -X POST https://api.muse.ai/v1/chat \\
+curl -X POST ${window.location.origin}/api/v1/chat \\
   -H <span class="string">"Authorization: Bearer {token}"</span> \\
   -H <span class="string">"Content-Type: application/json"</span> \\
   -d <span class="string">'{
@@ -1227,7 +1516,7 @@ curl -X POST https://api.muse.ai/v1/chat \\
     "model": "gpt-4-turbo-preview"
   }'</span>`,
             stream: `<span class="comment"># 스트리밍 채팅 API (Server-Sent Events)</span>
-curl -X POST https://api.muse.ai/v1/chat/stream \\
+curl -X POST ${window.location.origin}/api/v1/chat/stream \\
   -H <span class="string">"Authorization: Bearer {token}"</span> \\
   -H <span class="string">"Content-Type: application/json"</span> \\
   -H <span class="string">"Accept: text/event-stream"</span> \\
@@ -1236,7 +1525,7 @@ curl -X POST https://api.muse.ai/v1/chat/stream \\
     "model": "claude-3-opus"
   }'</span>`,
             rag: `<span class="comment"># RAG 문서 기반 질의 API</span>
-curl -X POST https://api.muse.ai/v1/chat/rag \\
+curl -X POST ${window.location.origin}/api/v1/chat/rag \\
   -H <span class="string">"Authorization: Bearer {token}"</span> \\
   -H <span class="string">"Content-Type: application/json"</span> \\
   -d <span class="string">'{
@@ -1255,8 +1544,21 @@ curl -X POST https://api.muse.ai/v1/chat/rag \\
         function copyCode() {
             const code = document.getElementById('codeContent').innerText;
             navigator.clipboard.writeText(code);
-            alert('코드가 클립보드에 복사되었습니다!');
+
+            const btn = event.target.closest('.copy-btn');
+            const originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => btn.innerHTML = originalIcon, 2000);
         }
+
+        // ===== Initialize =====
+        document.addEventListener('DOMContentLoaded', () => {
+            // Update API code with current URL
+            document.getElementById('codeContent').innerHTML = apiCodes.chat;
+
+            // Show mode indicator
+            console.log(`MUSE AI - ${CONFIG.DEMO_MODE ? 'Demo Mode' : 'API Mode'}`);
+        });
     </script>
 </body>
 </html>
